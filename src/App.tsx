@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { Component, ReactNode } from "react";
 import "./App.css";
 import characters from "./characters.png"
 import tileset from "./tileset.png"
@@ -22,22 +22,6 @@ function Sprite()
 }
 
 
-function Map()
-{
-	const resize = 3
-	
-	return <div style={{
-		border:              "1px solid red",
-		width:               32 * 7 * resize,
-		height:              32 * 4 * resize,
-		backgroundSize:      `${272 * resize}px ${392 * resize}px`,
-		backgroundPositionX: -32 * 5,
-		backgroundPositionY: -16,
-		backgroundImage:     `url(${tileset})`,
-	}}/>
-}
-
-
 function Tile( { size, x, y }: { size: number, x: number, y: number } )
 {
 	return <div style={{
@@ -51,64 +35,59 @@ function Tile( { size, x, y }: { size: number, x: number, y: number } )
 }
 
 
-
-function makeRange( total: number ): number[]
+class TileMap
 {
-	return [ ...Array( total ) ].map( ( i, ind ) => ind )
+	
+	constructor( private _map: Array<number[]> )
+	{
+	}
+	
+	
+	rows(): Array<number[]>
+	{
+		return this._map
+	}
+	
+	
+	columns( rowIndex: number ): number[]
+	{
+		return this.rows()[ rowIndex ]
+	}
 }
 
 
-
-function Grid( { tileSize, map }: { tileSize: number, map: Array<number[]> } )
+function Grid( { tileSize, map, children }: { tileSize: number, map: TileMap, children: ReactNode } )
 {
-	
-	function rowz(): Array<number[]>
-	{
-		return map
-	}
-	
-	
-	function colz( row: number ): number[]
-	{
-		return rowz()[ row ]
-	}
-	
 	
 	return (
 		<div style={{
 			position: "relative",
-			width:    tileSize * rowz().length,
-			height:   tileSize * colz( 0 ).length,
+			width:    tileSize * map.rows().length,
+			height:   tileSize * map.columns( 0 ).length,
 			border:   "1px solid green",
 		}}>
 			{
-				rowz().map( ( tiles, rowIndex ) =>
-					tiles.map( ( tile, tileIndex ) =>
-						<Tile size={tileSize}
-						      x={tileIndex}
-						      y={rowIndex}
-						      key={`${rowIndex}-${tileIndex}`}
-						/> ) )
+				map.rows()
+					.map( ( tiles, rowIndex ) =>
+						tiles.map( ( tile, tileIndex ) =>
+							<Tile size={tileSize}
+							      x={tileIndex}
+							      y={rowIndex}
+							      key={`${rowIndex}-${tileIndex}`}
+							/> ) )
 			}
 		</div>)
 }
 
 
-let map = {
-	tileSize: 32 * 2,
-	map:      [
-		[ 1, 3, 3, 3, 1, 1 ],
-		[ 1, 1, 1, 1, 1, 1 ],
-		[ 1, 1, 1, 1, 1, 2 ],
-		[ 1, 1, 1, 1, 1, 1 ],
-		[ 1, 1, 1, 2, 1, 1 ],
-		[ 1, 1, 1, 1, 2, 1 ],
-	],
-	get rowz(): Array<number[]>
-	{
-		return this.map
-	},
-}
+let map = new TileMap( [
+	[ 1, 3, 3, 3, 1, 1 ],
+	[ 1, 1, 1, 1, 1, 1 ],
+	[ 1, 1, 1, 1, 1, 2 ],
+	[ 1, 1, 1, 1, 1, 1 ],
+	[ 1, 1, 1, 2, 1, 1 ],
+	[ 1, 1, 1, 1, 2, 1 ],
+] )
 
 class App extends Component
 {
@@ -120,7 +99,8 @@ class App extends Component
 				<header className="App-header">
 					<Sprite/>
 					
-					<Grid {...map}>
+					<Grid map={map}
+					      tileSize={64}>
 					
 					</Grid>
 				
