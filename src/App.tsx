@@ -148,6 +148,22 @@ function useWindowEvent<T extends keyof WindowEventMap>( event: T, callback: ( e
 }
 
 
+function useDirectionEvent( onEvent: ( type: "left" | "right" | "up" | "down" ) => void )
+{
+	useWindowEvent( "keydown", e => {
+		if ( [ "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown" ].indexOf( e.key ) > -1 )
+			onEvent( keyPressedToDirection( e.key ) )
+	} )
+	
+	
+	function keyPressedToDirection( key: string ): "left" | "right" | "up" | "down"
+	{
+		return key.replace( /arrow/i, "" )
+			.toLowerCase() as any
+	}
+}
+
+
 function App( { scale, resolution }: { scale: number, resolution: number } )
 {
 	
@@ -155,30 +171,26 @@ function App( { scale, resolution }: { scale: number, resolution: number } )
 	
 	const [ playerPos, setPlayerPos ] = useState<{ x: number, y: number }>( { x: 0, y: 0 } )
 	
-	useWindowEvent( "keydown", e => {
-		type directionkey = "ArrowLeft" | "ArrowRight" | "ArrowUp" | "ArrowDown"
-		
-		const key: directionkey = e.key as any
-		console.log( key )
-		switch ( key ) {
-			case "ArrowLeft":
+	useDirectionEvent( direction => {
+		switch ( direction ) {
+			case "left":
 				setPlayerPos( pos => ({ ...pos, x: pos.x - 1 }) )
 				break;
 			
-			case "ArrowRight":
+			case "right" :
 				setPlayerPos( pos => ({ ...pos, x: pos.x + 1 }) )
 				break;
 			
-			case "ArrowDown":
+			case "down":
 				setPlayerPos( pos => ({ ...pos, y: pos.y + 1 }) )
 				break;
 			
-			case "ArrowUp":
+			case "up":
 				setPlayerPos( pos => ({ ...pos, y: pos.y - 1 }) )
 				break;
 			
 			default:
-				const shouldNotBeReached: never = key
+				const shouldNotBeReached: never = direction
 				break;
 		}
 	} )
