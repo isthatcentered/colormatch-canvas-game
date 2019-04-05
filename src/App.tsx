@@ -1,35 +1,60 @@
-import React, { Component, ReactNode } from "react";
+import React, { ReactNode, useEffect, useState } from "react";
 import "./App.css";
 import characters from "./characters.png"
 
 
 
 
-function Sprite()
+interface Positionable
 {
-	const resize = 3
-	
+	size: number,
+	x: number,
+	y: number
+}
+
+
+function GridItem( { size, x, y }: {} & Positionable )
+{
 	return <div style={{
-		border:              "1px solid red",
-		width:               32 * resize,
-		height:              32 * resize,
-		backgroundSize:      `${736 * resize}px ${128 * resize}px`,
-		backgroundPositionX: 0,
-		backgroundPositionY: -32 * resize,
-		backgroundImage:     `url(${characters})`,
+		position:  "absolute",
+		top:       size * y,
+		left:      size * x,
+		boxShadow: "0 0 0 1px red inset",
+		width:     size,
+		height:    size,
 	}}/>
 }
 
 
-function Tile( { size, x, y }: { size: number, x: number, y: number } )
+function Player( { size, x, y, sprite }: { sprite: string } & Positionable )
+{
+	return (
+		<div
+			className="Player"
+			style={{
+				position:            "absolute",
+				top:                 size * y,
+				left:                size * x,
+				boxShadow:           "0 0 0 1px red inset",
+				width:               size,
+				height:              size,
+				backgroundImage:     `url(${sprite})`,
+				backgroundSize:      `${736 * 2}px ${128 * 2}px`,
+				backgroundPositionX: 0,
+				backgroundPositionY: -(32 * 2),
+			}}/>)
+}
+
+
+function Tile( { size, x, y }: {} & Positionable )
 {
 	return <div style={{
-		position: "absolute",
-		top:      size * y,
-		left:     size * x,
-		border:   "1px solid red",
-		width:    size,
-		height:   size,
+		position:  "absolute",
+		top:       size * y,
+		left:      size * x,
+		boxShadow: "0 0 0 1px red inset",
+		width:     size,
+		height:    size,
 	}}/>
 }
 
@@ -76,10 +101,10 @@ function Grid( { resolution, map, children }: { resolution: number, map: TileMap
 	
 	return (
 		<div style={{
-			position: "relative",
-			width:    map.width,
-			height:   map.height,
-			border:   "1px solid green",
+			position:  "relative",
+			width:     map.width * resolution,
+			height:    map.height * resolution,
+			boxShadow: "0 0 0 2px green",
 		}}>
 			{
 				map.render( ( { rowIndex, tileIndex } ) =>
@@ -90,8 +115,10 @@ function Grid( { resolution, map, children }: { resolution: number, map: TileMap
 						key={`${rowIndex}-${tileIndex}`}
 					/> )
 			}
+			{children}
 		</div>)
 }
+
 
 
 let map = new TileMap( [
@@ -103,25 +130,73 @@ let map = new TileMap( [
 	[ 1, 1, 1, 1, 2, 1 ],
 ] )
 
-class App extends Component
+
+function useWindowEvent<T extends keyof WindowEventMap>( event: T, callback: ( e: WindowEventMap[T] ) => void )
+{
+	useEffect( () => {
+		
+		function handleEvent( e: WindowEventMap[T] ): void
+		{
+			callback( e )
+		}
+		
+		
+		window.addEventListener( event, handleEvent )
+		
+		return () => window.removeEventListener( event, handleEvent )
+	}, [] )
+}
+
+
+function App( { scale, resolution }: { scale: number, resolution: number } )
 {
 	
-	render()
-	{
-		return (
-			<div className="App">
-				<header className="App-header">
-					<Sprite/>
-					
-					<Grid map={map}
-					      resolution={64}>
-					
-					</Grid>
-				
-				</header>
-			</div>
-		);
-	}
+	const tileSize = resolution * scale
+	
+	const [ playerPos, setPlayerPos ] = useState<{ x: number, y: number }>( { x: 0, y: 0 } )
+	
+	useWindowEvent( "keydown", e => {
+		type directionkey = "ArrowLeft" | "ArrowRight" | "ArrowUp" | "ArrowDown"
+		
+		const key: directionkey = e.key as any
+		console.log( key )
+		switch ( key ) {
+			case "ArrowLeft":
+				setPlayerPos( pos => ({ ...pos, x: pos.x - 1 }) )
+				break;
+			
+			case "ArrowRight":
+				setPlayerPos( pos => ({ ...pos, x: pos.x + 1 }) )
+				break;
+			
+			case "ArrowDown":
+				setPlayerPos( pos => ({ ...pos, y: pos.y + 1 }) )
+				break;
+			
+			case "ArrowUp":
+				setPlayerPos( pos => ({ ...pos, y: pos.y - 1 }) )
+				break;
+			
+			default:
+				const shouldNotBeReached: never = key
+				break;
+		}
+	} )
+	
+	return (
+		<div className="App">
+			<Grid map={map}
+			      resolution={tileSize}>
+				<Player
+					sprite={characters}
+					size={tileSize}
+					x={playerPos.x}
+					y={playerPos.y}
+				/>
+			</Grid>
+		</div>
+	)
 }
+
 
 export default App;
