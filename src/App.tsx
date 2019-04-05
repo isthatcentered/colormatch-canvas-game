@@ -1,7 +1,6 @@
 import React, { Component, ReactNode } from "react";
 import "./App.css";
 import characters from "./characters.png"
-import tileset from "./tileset.png"
 
 
 
@@ -38,20 +37,36 @@ function Tile( { size, x, y }: { size: number, x: number, y: number } )
 class TileMap
 {
 	
-	constructor( private _map: Array<number[]> )
+	constructor( private _map: Array<number[]>, private _resolution: number )
 	{
 	}
 	
 	
-	rows(): Array<number[]>
+	get width(): number
+	{
+		return this.rows[ 0 ].length * this._resolution
+	}
+	
+	
+	get height(): number
+	{
+		return this.rows.length * this._resolution
+	}
+	
+	
+	private get rows()
 	{
 		return this._map
 	}
 	
 	
-	columns( rowIndex: number ): number[]
+	render( renderTile: ( renderParams: { rowIndex: number, tileIndex: number, resolution: number } ) => any )
 	{
-		return this.rows()[ rowIndex ]
+		return this.rows
+			.map( ( tiles, rowIndex ) =>
+				tiles.map( ( tile, tileIndex ) =>
+					renderTile( { rowIndex, tileIndex, resolution: 64 } ),
+				) )
 	}
 }
 
@@ -62,19 +77,17 @@ function Grid( { tileSize, map, children }: { tileSize: number, map: TileMap, ch
 	return (
 		<div style={{
 			position: "relative",
-			width:    tileSize * map.rows().length,
-			height:   tileSize * map.columns( 0 ).length,
+			width:    map.width,
+			height:   map.height,
 			border:   "1px solid green",
 		}}>
 			{
-				map.rows()
-					.map( ( tiles, rowIndex ) =>
-						tiles.map( ( tile, tileIndex ) =>
-							<Tile size={tileSize}
-							      x={tileIndex}
-							      y={rowIndex}
-							      key={`${rowIndex}-${tileIndex}`}
-							/> ) )
+				map.render( ( { rowIndex, resolution, tileIndex } ) =>
+					<Tile size={resolution}
+					      x={tileIndex}
+					      y={rowIndex}
+					      key={`${rowIndex}-${tileIndex}`}
+					/> )
 			}
 		</div>)
 }
@@ -87,7 +100,7 @@ let map = new TileMap( [
 	[ 1, 1, 1, 1, 1, 1 ],
 	[ 1, 1, 1, 2, 1, 1 ],
 	[ 1, 1, 1, 1, 2, 1 ],
-] )
+], 64 )
 
 class App extends Component
 {
