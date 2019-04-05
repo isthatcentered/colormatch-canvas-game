@@ -59,46 +59,56 @@ function makeRange( total: number ): number[]
 
 
 
-function Grid( { columns, rows, tileSize }: { columns: number, rows: number, tileSize: number } )
+function Grid( { tileSize, map }: { tileSize: number, map: Array<number[]> } )
 {
+	
+	function rowz(): Array<number[]>
+	{
+		return map
+	}
+	
+	
+	function colz( row: number ): number[]
+	{
+		return rowz()[ row ]
+	}
+	
+	
 	return (
 		<div style={{
 			position: "relative",
-			width:    tileSize * columns,
-			height:   tileSize * rows,
+			width:    tileSize * rowz().length,
+			height:   tileSize * colz( 0 ).length,
 			border:   "1px solid green",
 		}}>
 			{
-				makeRange( rows )
-					.map( rowIndex =>
-						makeRange( columns )
-							.map( colIndex =>
-								<Tile size={tileSize}
-								      x={colIndex}
-								      y={rowIndex}
-								      key={`${colIndex}-${rowIndex}`}
-								/> ) )
+				rowz().map( ( tiles, rowIndex ) =>
+					tiles.map( ( tile, tileIndex ) =>
+						<Tile size={tileSize}
+						      x={tileIndex}
+						      y={rowIndex}
+						      key={`${rowIndex}-${tileIndex}`}
+						/> ) )
 			}
 		</div>)
 }
 
 
 let map = {
-	columns:  8,
-	rows:     8,
 	tileSize: 32 * 2,
-	tiles:    [
-		1, 3, 3, 3, 1, 1,
-		1, 1, 1, 1, 1, 1,
-		1, 1, 1, 1, 1, 2,
-		1, 1, 1, 1, 1, 1,
-		1, 1, 1, 2, 1, 1,
-		1, 1, 1, 1, 2, 1,
+	map:      [
+		[ 1, 3, 3, 3, 1, 1 ],
+		[ 1, 1, 1, 1, 1, 1 ],
+		[ 1, 1, 1, 1, 1, 2 ],
+		[ 1, 1, 1, 1, 1, 1 ],
+		[ 1, 1, 1, 2, 1, 1 ],
+		[ 1, 1, 1, 1, 2, 1 ],
 	],
-	getTile:  function ( col: number, row: number ) {
-		return this.tiles[ row * map.columns + col ]
+	get rowz(): Array<number[]>
+	{
+		return this.map
 	},
-};
+}
 
 class App extends Component
 {
