@@ -37,20 +37,20 @@ function Tile( { size, x, y }: { size: number, x: number, y: number } )
 class TileMap
 {
 	
-	constructor( private _map: Array<number[]>, private _resolution: number )
+	constructor( private _map: Array<number[]> )
 	{
 	}
 	
 	
 	get width(): number
 	{
-		return this.rows[ 0 ].length * this._resolution
+		return this.rows[ 0 ].length
 	}
 	
 	
 	get height(): number
 	{
-		return this.rows.length * this._resolution
+		return this.rows.length
 	}
 	
 	
@@ -60,18 +60,18 @@ class TileMap
 	}
 	
 	
-	render( renderTile: ( renderParams: { rowIndex: number, tileIndex: number, resolution: number } ) => any )
+	render( renderTile: ( renderParams: { rowIndex: number, tileIndex: number } ) => any )
 	{
 		return this.rows
 			.map( ( tiles, rowIndex ) =>
 				tiles.map( ( tile, tileIndex ) =>
-					renderTile( { rowIndex, tileIndex, resolution: 64 } ),
+					renderTile( { rowIndex, tileIndex } ),
 				) )
 	}
 }
 
 
-function Grid( { tileSize, map, children }: { tileSize: number, map: TileMap, children: ReactNode } )
+function Grid( { resolution, map, children }: { resolution: number, map: TileMap, children: ReactNode } )
 {
 	
 	return (
@@ -82,11 +82,12 @@ function Grid( { tileSize, map, children }: { tileSize: number, map: TileMap, ch
 			border:   "1px solid green",
 		}}>
 			{
-				map.render( ( { rowIndex, resolution, tileIndex } ) =>
-					<Tile size={resolution}
-					      x={tileIndex}
-					      y={rowIndex}
-					      key={`${rowIndex}-${tileIndex}`}
+				map.render( ( { rowIndex, tileIndex } ) =>
+					<Tile
+						size={resolution}
+						x={tileIndex}
+						y={rowIndex}
+						key={`${rowIndex}-${tileIndex}`}
 					/> )
 			}
 		</div>)
@@ -100,7 +101,7 @@ let map = new TileMap( [
 	[ 1, 1, 1, 1, 1, 1 ],
 	[ 1, 1, 1, 2, 1, 1 ],
 	[ 1, 1, 1, 1, 2, 1 ],
-], 64 )
+] )
 
 class App extends Component
 {
@@ -113,7 +114,7 @@ class App extends Component
 					<Sprite/>
 					
 					<Grid map={map}
-					      tileSize={64}>
+					      resolution={64}>
 					
 					</Grid>
 				
