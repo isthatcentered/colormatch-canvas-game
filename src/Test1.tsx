@@ -4,7 +4,7 @@ import characters from "./characters.png"
 
 
 
-interface Positionable
+interface _Positionable
 {
 	size: number,
 	x: number,
@@ -12,7 +12,7 @@ interface Positionable
 }
 
 
-function GridItem( { size, x, y }: {} & Positionable )
+function GridItem( { size, x, y }: {} & _Positionable )
 {
 	return <div style={{
 		position:  "absolute",
@@ -25,7 +25,7 @@ function GridItem( { size, x, y }: {} & Positionable )
 }
 
 
-function Player( { size, x, y, sprite }: { sprite: string } & Positionable )
+function Player( { size, x, y, sprite }: { sprite: string } & _Positionable )
 {
 	return (
 		<div
@@ -45,7 +45,7 @@ function Player( { size, x, y, sprite }: { sprite: string } & Positionable )
 }
 
 
-function Tile( { size, x, y }: {} & Positionable )
+function Tile( { size, x, y }: {} & _Positionable )
 {
 	return <div style={{
 		position:  "absolute",
@@ -138,8 +138,6 @@ export function useWindowEvent<T extends keyof WindowEventMap>( event: T, callba
 			callback( e )
 		}
 		
-		
-		console.log( "useWindowEvent() ran" )
 		window.addEventListener( event, handleEvent )
 		
 		return () => window.removeEventListener( event, handleEvent )

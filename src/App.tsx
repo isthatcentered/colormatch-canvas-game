@@ -1,8 +1,21 @@
 import React, { useLayoutEffect, useRef, useState } from "react";
 import "./App.css";
 import { Time } from "./GameLoop"
-import { useDirectionEvent } from "./Test1"
 
+
+
+
+export interface position
+{
+	x: number,
+	y: number
+}
+
+export interface size
+{
+	width: number
+	height: number
+}
 
 
 
@@ -55,36 +68,51 @@ function CanvasTest( { width, height, time }: { width: number, height: number, t
 }
 
 
-function Frame( { playerPos, width, height }: { playerPos: { y: number, x: number }, width: number, height: number } )
+type FrameProps = {} & size
+
+
+function Frame( { width, height }: FrameProps )
 {
+	console.log( "<Frame/>" )
+	
 	const canvas = useRef<HTMLCanvasElement | null>( null )
 	
 	useLayoutEffect( () => {
-		const context: CanvasRenderingContext2D | null = canvas.current && canvas.current.getContext( "2d" ) ?
+		console.log( "<Frame/>:::useLayoutEffect()" )
+		
+		const ctx: CanvasRenderingContext2D | null = canvas.current && canvas.current.getContext( "2d" ) ?
 		                                                 canvas.current.getContext( "2d" ) :
 		                                                 null
-		if ( !context )
+		if ( !ctx )
 			return
 		
-		const rectangle = {
-			height: 32,
-			width:  32,
-		}
 		
-		// Render canvas background
-		// he uses it to erase previous rectangle, but he could do context.clear() no ?
-		context.fillStyle = "#202020"
-		context.fillRect( 0, 0, width, height )
+		ctx.beginPath();
+		ctx.rect(20, 40, 50, 50);
+		ctx.fillStyle = "#FF0000";
+		ctx.fill();
+		ctx.closePath();
 		
-		context.fillStyle = "red"
-		context.fillRect( playerPos.x, playerPos.y, rectangle.width, rectangle.height )
-		
-		console.log( "ran" )
-	}, [ playerPos ] )
+		ctx.beginPath();
+		ctx.arc(240, 160, 20, 0, Math.PI*2, false);
+		ctx.fillStyle = "green";
+		ctx.fill();
+		ctx.closePath();
+		// const rectangle = {
+		// 	height: 32,
+		// 	width:  32,
+		// }
+		//
+		// context.clearRect( 0, 0, width, height )
+		//
+		// context.fillStyle = "red"
+		// context.fillRect( playerPos.x, playerPos.y, rectangle.width, rectangle.height )
+	}, [] )
 	
 	return (
 		<div>
 			<canvas
+				style={{ backgroundColor: "#202020" }}
 				ref={canvas}
 				width={width}
 				height={height}
@@ -93,51 +121,28 @@ function Frame( { playerPos, width, height }: { playerPos: { y: number, x: numbe
 }
 
 
-function App( { scale, resolution }: { scale: number, resolution: number } )
+interface gameState
 {
+	playerPos: position
+}
+
+
+function App( {}: {} )
+{
+	console.log( "<App/>" )
 	
-	const [ pos, setPos ] = useState<{ x: number, y: number }>( { y: 0, x: 0 } ),
-	      velocity        = 10
-	
-	useDirectionEvent( direction => {
-		switch ( direction ) {
-			case "up":
-				setPos( pos => ({ ...pos, y: pos.y - velocity }) )
-				break;
-			
-			case "down":
-				setPos( pos => ({ ...pos, y: pos.y + velocity }) )
-				break;
-			
-			case "left":
-				setPos( pos => ({ ...pos, x: pos.x - velocity }) )
-				break;
-			
-			
-			case "right":
-				setPos( pos => ({ ...pos, x: pos.x + velocity }) )
-				break;
-			
-			default:
-				const shouldNotBeReached: never = direction
-				break;
-		}
-	} )
+	const width  = 480,
+	      height = 320
 	
 	return (
 		<div className="App">
 			
 			<Time>
 				{() =>
-					<Frame playerPos={pos}
-					       height={300}
-					       width={300}
+					<Frame
+						width={width}
+						height={height}
 					/>
-					// <CanvasTest
-					// 	width={300}
-					// 	height={300}
-					// 	time={0}
-					// />
 				}
 			</Time>
 		</div>)

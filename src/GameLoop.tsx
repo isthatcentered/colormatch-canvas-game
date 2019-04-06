@@ -6,7 +6,17 @@ import React, { Component, ReactNode } from "react"
 type listener = () => void
 type unsubscribeFn = () => void
 
-class GameLoop
+
+
+interface GameLoop
+{
+	start: () => void
+	stop: () => void
+	running: boolean
+	subscribe: ( listener: listener ) => unsubscribeFn
+}
+
+class RAFGameLoop implements GameLoop
 {
 	
 	private _id: number = 0
@@ -48,14 +58,56 @@ class GameLoop
 	}
 }
 
+class IntervalGameLoop implements GameLoop
+{
+	private _subscribers: listener[] = []
+	private _running: boolean = false
+	private _intervalId: any = null
+	
+	
+	constructor( private interval: number )
+	{
+	}
+	
+	
+	get running()
+	{
+		return this._running
+	}
+	
+	
+	start = (): void => {
+		this._intervalId = setInterval( () => {
+			this._subscribers.forEach( s => s() )
+			
+		}, this.interval )
+		
+		this._running = true
+	}
+	
+	stop = (): void => {
+		clearInterval( this._intervalId )
+		this._running = false
+	}
+	
+	subscribe = ( listener: listener ): unsubscribeFn => {
+		this._subscribers.push( listener )
+		
+		return () => {
+			this._subscribers = this._subscribers.filter( subscriber => subscriber !== listener )
+		}
+	}
+}
+
 export class Time extends Component<{ children: () => ReactNode }>
 {
-	loop: GameLoop = new GameLoop()
+	
+	loop: GameLoop = new IntervalGameLoop( 100 )
 	
 	
 	componentDidMount(): void
 	{
-		this.stop()
+		// this.start()
 		
 		this.loop.subscribe( () => {
 			this.forceUpdate()
@@ -65,7 +117,7 @@ export class Time extends Component<{ children: () => ReactNode }>
 	
 	componentWillUnmount(): void
 	{
-		this.start()
+		this.stop()
 	}
 	
 	
@@ -82,6 +134,8 @@ export class Time extends Component<{ children: () => ReactNode }>
 	
 	render()
 	{
+		console.log( "<Time/>" )
+		
 		const { children } = this.props
 		
 		return (
