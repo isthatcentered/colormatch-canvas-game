@@ -6,22 +6,48 @@ import React, { Component, ReactNode } from "react"
 type listener = () => void
 type unsubscribeFn = () => void
 
+interface Subscribable
+{
+	subscribe: ( listener: listener ) => unsubscribeFn
+}
 
-
-interface GameLoop
+interface GameLoop extends Subscribable
 {
 	start: () => void
 	stop: () => void
 	running: boolean
-	subscribe: ( listener: listener ) => unsubscribeFn
+}
+
+class Subject implements Subscribable
+{
+	private _subscribers: listener[] = []
+	
+	notify = () => {
+		this._subscribers.forEach( subscribers => subscribers() )
+	}
+	
+	subscribe = ( listener: listener ): unsubscribeFn => {
+		
+		this._subscribers.push( listener )
+		
+		return () => {
+			this._subscribers = this._subscribers.filter( subscriber => subscriber !== listener )
+		}
+	}
 }
 
 class RAFGameLoop implements GameLoop
 {
-	
 	private _id: number = 0
-	private _subscribers: listener[] = []
+	private _subject = new Subject()
 	private _running: boolean = false
+	
+	
+	get running(): boolean
+	{
+		return this._running
+	}
+	
 	
 	start = () => {
 		this._loop( 0 )
@@ -35,24 +61,12 @@ class RAFGameLoop implements GameLoop
 	}
 	
 	
-	get running(): boolean
-	{
-		return this._running
-	}
-	
-	
-	subscribe = ( listener: listener ): unsubscribeFn => {
-		
-		this._subscribers.push( listener )
-		
-		return () => {
-			this._subscribers = this._subscribers.filter( subscriber => subscriber !== listener )
-		}
-	}
+	subscribe = ( listener: listener ): unsubscribeFn =>
+		this._subject.subscribe( listener )
 	
 	
 	private _loop = ( tframe: DOMHighResTimeStamp ) => {
-		this._subscribers.forEach( subscriber => subscriber() )
+		this._subject.notify()
 		
 		this._id = window.requestAnimationFrame( this._loop )
 	}
@@ -60,25 +74,23 @@ class RAFGameLoop implements GameLoop
 
 class IntervalGameLoop implements GameLoop
 {
-	private _subscribers: listener[] = []
 	private _running: boolean = false
 	private _intervalId: any = null
+	private _subject = new Subject()
 	
 	
 	constructor( private interval: number )
 	{
 	}
 	
-	
 	get running()
 	{
 		return this._running
 	}
 	
-	
 	start = (): void => {
 		this._intervalId = setInterval( () => {
-			this._subscribers.forEach( s => s() )
+			this._subject.notify()
 			
 		}, this.interval )
 		
@@ -90,13 +102,8 @@ class IntervalGameLoop implements GameLoop
 		this._running = false
 	}
 	
-	subscribe = ( listener: listener ): unsubscribeFn => {
-		this._subscribers.push( listener )
-		
-		return () => {
-			this._subscribers = this._subscribers.filter( subscriber => subscriber !== listener )
-		}
-	}
+	subscribe = ( listener: listener ): unsubscribeFn =>
+		this._subject.subscribe( listener )
 }
 
 export class Time extends Component<{ children: () => ReactNode }>
