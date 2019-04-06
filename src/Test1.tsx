@@ -129,7 +129,7 @@ let map = new TileMap( [
 ] )
 
 
-function useWindowEvent<T extends keyof WindowEventMap>( event: T, callback: ( e: WindowEventMap[T] ) => void )
+export function useWindowEvent<T extends keyof WindowEventMap>( event: T, callback: ( e: WindowEventMap[T] ) => void )
 {
 	useEffect( () => {
 		
@@ -139,19 +139,51 @@ function useWindowEvent<T extends keyof WindowEventMap>( event: T, callback: ( e
 		}
 		
 		
+		console.log( "useWindowEvent() ran" )
 		window.addEventListener( event, handleEvent )
 		
 		return () => window.removeEventListener( event, handleEvent )
-	}, [] )
+	} )
 }
 
 
-function useDirectionEvent( onEvent: ( type: "left" | "right" | "up" | "down" ) => void )
+type arrowKeys = "ArrowLeft" | "ArrowRight" | "ArrowUp" | "ArrowDown"
+
+
+export function useDirectionEvent( onEvent: ( type: "left" | "right" | "up" | "down" ) => void )
 {
+	const handledKeys: arrowKeys[] = [ "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown" ]
+	
+	const [ pressed, setPressed ] = useState<{ [ key: string ]: boolean }>( {} )
+	
 	useWindowEvent( "keydown", e => {
-		if ( [ "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown" ].indexOf( e.key ) > -1 )
+		if ( isHandledKey( e.key ) ) {
+			
+			setPressed( pressed => ({
+				...pressed,
+				[ e.key ]: true,
+			}) )
 			onEvent( keyPressedToDirection( e.key ) )
+		}
 	} )
+	
+	useWindowEvent( "keyup", e => {
+		if ( isHandledKey( e.key ) ) {
+			
+			setPressed( pressed => ({
+				...pressed,
+				[ e.key ]: false,
+			}) )
+			console.log( pressed )
+			onEvent( keyPressedToDirection( e.key ) )
+		}
+	} )
+	
+	
+	function isHandledKey( key: string ): boolean
+	{
+		return handledKeys.indexOf( key as any ) > -1
+	}
 	
 	
 	function keyPressedToDirection( key: string ): "left" | "right" | "up" | "down"
