@@ -169,13 +169,10 @@ export function useDirectionEvent( onEvent: ( type: "left" | "right" | "up" | "d
 	
 	useWindowEvent( "keyup", e => {
 		if ( isHandledKey( e.key ) ) {
-			
 			setPressed( pressed => ({
 				...pressed,
 				[ e.key ]: false,
 			}) )
-			console.log( pressed )
-			onEvent( keyPressedToDirection( e.key ) )
 		}
 	} )
 	
