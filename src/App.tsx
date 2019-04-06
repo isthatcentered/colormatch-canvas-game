@@ -1,6 +1,6 @@
 import React, { useLayoutEffect, useRef, useState } from "react";
 import "./App.css";
-import { GameLoop } from "./GameLoop"
+import { Time } from "./GameLoop"
 
 
 
@@ -40,9 +40,9 @@ function CanvasTest( { width, height, time }: { width: number, height: number, t
 		}) )
 		
 		
-		console.log( "canvas:::", canvas.current )
 	}, [ time ] )
 	
+	console.log( "canvas:::", canvas.current )
 	return (
 		<div>
 			<canvas
@@ -60,15 +60,15 @@ function App( { scale, resolution }: { scale: number, resolution: number } )
 	return (
 		<div className="App">
 			
-			<GameLoop>
-				{time =>
+			<Time>
+				{() =>
 					<CanvasTest
 						width={300}
 						height={300}
-						time={time}
+						time={0}
 					/>
 				}
-			</GameLoop>
+			</Time>
 		</div>)
 }
 

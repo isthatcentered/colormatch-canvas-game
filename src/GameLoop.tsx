@@ -3,36 +3,68 @@ import React, { Component, ReactNode } from "react"
 
 
 
-export class GameLoop extends Component<{ children: ( frame: number ) => ReactNode }>
+type listener = () => void
+type unsubscribeFn = () => void
+
+class GameLoop
 {
-	frame = 0
 	
-	loop = ( time: number ) => {
-		this.forceUpdate()
-		
-		this.frame = window.requestAnimationFrame( this.loop )
+	private _id: number = 0
+	private _subscribers: listener[] = []
+	
+	start = () => {
+		this._loop()
 	}
+	
+	
+	stop = () => {
+		window.cancelAnimationFrame( this._id )
+	}
+	
+	subscribe = ( listener: listener ): unsubscribeFn => {
+		
+		this._subscribers.push( listener )
+		
+		return () => {
+			this._subscribers = this._subscribers.filter( subscriber => subscriber !== listener )
+		}
+	}
+	
+	
+	private _loop = () => {
+		this._subscribers.forEach( subscriber => subscriber() )
+		
+		this._id = window.requestAnimationFrame( this._loop )
+	}
+}
+
+export class Time extends Component<{ children: ()=> ReactNode }>
+{
+	loop: GameLoop = new GameLoop()
 	
 	
 	componentDidMount(): void
 	{
+		this.loop.start()
 		
-		this.loop( this.frame )
+		this.loop.subscribe( () => {
+			this.forceUpdate()
+		} )
 	}
 	
 	
 	componentWillUnmount(): void
 	{
-		window.cancelAnimationFrame( this.frame )
+		this.loop.stop()
 	}
 	
 	
 	handleStop = () => {
-		window.cancelAnimationFrame( this.frame )
+		this.loop.stop()
 	}
 	
 	handleStart = () => {
-		window.requestAnimationFrame( this.loop )
+		this.loop.start()
 	}
 	
 	
@@ -40,14 +72,15 @@ export class GameLoop extends Component<{ children: ( frame: number ) => ReactNo
 	{
 		let { children } = this.props
 		
-		console.log( "Rendered", this.frame )
-		
 		return (
 			<>
-				{children( this.frame )}
 				
-				<button onClick={this.handleStart}>(re) Start</button>
-				<button onClick={this.handleStop}>Stop</button>
+				{children()}
+				
+				<div style={{ padding: 10 }}>
+					<button onClick={this.handleStart}>(re) Start</button>
+					<button onClick={this.handleStop}>Stop</button>
+				</div>
 			</>)
 	}
 }
