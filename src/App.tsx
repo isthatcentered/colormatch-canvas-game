@@ -1,7 +1,31 @@
-import React, { useLayoutEffect, useRef, useState } from "react"
+import React from "react"
 import "./App.css"
 import { IntervalGameLoop } from "./GameLoop"
 
+
+
+
+interface circle extends position
+{
+	radius: number
+}
+
+interface rectangle extends position, size
+{
+
+}
+
+export interface position
+{
+	x: number,
+	y: number
+}
+
+export interface size
+{
+	width: number
+	height: number
+}
 
 
 
@@ -24,15 +48,15 @@ document.addEventListener( "keydown", keyDownHandler, false );
 document.addEventListener( "keyup", keyUpHandler, false );
 
 
-let ball: position & circle & any = {
+let ball: circle & any = {
 	radius:    10,
 	x:         canvas.width / 2,
 	y:         canvas.height - 30,
 	nextStepX: 2,
-	nextStepY: 2,
+	nextStepY: -2,
 }
 
-let paddle: size & position = {
+let paddle: rectangle = {
 	height: 10,
 	width:  75,
 	x:      (canvas.width / 2) - (75 / 2),
@@ -51,51 +75,41 @@ function render()
 	updateBallPosition()
 	
 	updatePaddlePosition()
-}
-
-
-function updatePaddlePosition()
-{
-	if ( keyPressed.right )
-		paddle.x += 7
-	else if ( keyPressed.left )
-		paddle.x -= 7;
+	
+	// console.log( keyPressed )
 }
 
 
 function updateBallPosition()
 {
-	if ( isTouchingXSides() ) {
+	if ( isTouchingXSides() )
 		reverseXDirection()
+	
+	if ( isTouchingTop() )
+		reverseYDirection()
+	
+	if ( isTouchingPaddleTop() )
+		reverseYDirection()
+	
+	if ( isTouchingBottom() ) {
+		loop.stop()
+		console.log( "Ye failed ☠️" )
 	}
 	
-	if ( isTouchingYSides() ) {
-		reverseYDirection()
-	}
 	
 	ball.x += ball.nextStepX;
 	ball.y += ball.nextStepY;
 }
 
 
-function keyDownHandler( e: KeyboardEvent )
+function updatePaddlePosition()
 {
-	if ( e.key == "Right" || e.key == "ArrowRight" ) {
-		keyPressed.right = true;
-	} else if ( e.key == "Left" || e.key == "ArrowLeft" ) {
-		keyPressed.left = true;
-	}
+	if ( keyPressed.right && paddle.x < canvas.width - paddle.width )
+		paddle.x += 7
+	else if ( keyPressed.left && paddle.x > 0 )
+		paddle.x -= 7;
 }
 
-
-function keyUpHandler( e: KeyboardEvent )
-{
-	if ( e.key == "Right" || e.key == "ArrowRight" ) {
-		keyPressed.right = false;
-	} else if ( e.key == "Left" || e.key == "ArrowLeft" ) {
-		keyPressed.left = false;
-	}
-}
 
 
 function reverseXDirection()
@@ -107,6 +121,25 @@ function reverseXDirection()
 function reverseYDirection()
 {
 	ball.nextStepY = -ball.nextStepY
+}
+
+
+function isTouchingPaddleTop(): boolean
+{
+	const paddleLeft  = paddle.x, // 202
+	      paddleRight = paddle.x + paddle.width, // 277
+	      paddleTop   = paddle.y // 310
+	
+	
+	const ballLeft   = ball.x - (ball.radius / 2), // 235
+	      ballRight  = ball.x + (ball.radius / 2), // 245
+	      ballBottom = ball.y + (ball.radius / 2) // 295
+	
+	
+	const matchesPaddleTop  = ballBottom + ball.nextStepY > paddleTop,
+	      matchesPaddleArea = ballLeft >= paddleLeft && ballLeft < paddleRight
+	
+	return matchesPaddleTop && matchesPaddleArea
 }
 
 
@@ -166,71 +199,23 @@ function drawPaddle()
 }
 
 
-interface circle
+function keyDownHandler( e: KeyboardEvent )
 {
-	radius: number
+	if ( e.key == "Right" || e.key == "ArrowRight" ) {
+		keyPressed.right = true;
+	} else if ( e.key == "Left" || e.key == "ArrowLeft" ) {
+		keyPressed.left = true;
+	}
 }
 
 
-
-export interface position
+function keyUpHandler( e: KeyboardEvent )
 {
-	x: number,
-	y: number
-}
-
-export interface size
-{
-	width: number
-	height: number
-}
-
-
-type FrameProps = {} & size
-
-
-function Frame( { width, height }: FrameProps )
-{
-	console.log( "<Frame/>" )
-	const canvas            = useRef<HTMLCanvasElement | null>( null ),
-	      [ ball, setBall ] = useState<position>( { x: width / 2, y: height - 30 } )
-	
-	var dx = 2
-	var dy = -2
-	
-	useLayoutEffect( () => {
-		console.log( "<Frame/>:::useLayoutEffect()" )
-		
-		const ctx: CanvasRenderingContext2D | null = canvas.current && canvas.current.getContext( "2d" ) ?
-		                                             canvas.current.getContext( "2d" ) :
-		                                             null
-		if ( !ctx )
-			return
-		
-		ctx.beginPath()
-		ctx.arc( ball.x, ball.y, 10, 0, Math.PI * 2 )
-		ctx.fillStyle = "#0095DD"
-		ctx.fill()
-		ctx.closePath()
-		
-		setBall( ball => ({ ...ball, x: ball.x + dx, y: ball.y + dy }) )
-	} )
-	
-	return (
-		<div>
-			<canvas
-				style={{ backgroundColor: "#202020" }}
-				ref={canvas}
-				width={width}
-				height={height}
-			/>
-		</div>)
-}
-
-
-interface gameState
-{
-	playerPos: position
+	if ( e.key == "Right" || e.key == "ArrowRight" ) {
+		keyPressed.right = false;
+	} else if ( e.key == "Left" || e.key == "ArrowLeft" ) {
+		keyPressed.left = false;
+	}
 }
 
 
@@ -243,15 +228,6 @@ function App( {}: {} )
 	
 	return (
 		<div className="App">
-			
-			{/*<Time loop={new IntervalGameLoop( 1000 )}>*/}
-			{/*{() =>*/}
-			{/*<Frame*/}
-			{/*width={width}*/}
-			{/*height={height}*/}
-			{/*/>*/}
-			{/*}*/}
-			{/*</Time>*/}
 		</div>)
 }
 
