@@ -36,7 +36,7 @@ class Subject implements Subscribable
 	}
 }
 
-class RAFGameLoop implements GameLoop
+export class RAFGameLoop implements GameLoop
 {
 	private _id: number = 0
 	private _subject = new Subject()
@@ -72,7 +72,7 @@ class RAFGameLoop implements GameLoop
 	}
 }
 
-class IntervalGameLoop implements GameLoop
+export class IntervalGameLoop implements GameLoop
 {
 	private _running: boolean = false
 	private _intervalId: any = null
@@ -83,10 +83,12 @@ class IntervalGameLoop implements GameLoop
 	{
 	}
 	
+	
 	get running()
 	{
 		return this._running
 	}
+	
 	
 	start = (): void => {
 		this._intervalId = setInterval( () => {
@@ -106,17 +108,16 @@ class IntervalGameLoop implements GameLoop
 		this._subject.subscribe( listener )
 }
 
-export class Time extends Component<{ children: () => ReactNode }>
+export class Time extends Component<{ loop: GameLoop, children: () => ReactNode }>
 {
 	
-	loop: GameLoop = new IntervalGameLoop( 100 )
 	
 	
 	componentDidMount(): void
 	{
 		// this.start()
 		
-		this.loop.subscribe( () => {
+		this.props.loop.subscribe( () => {
 			this.forceUpdate()
 		} )
 	}
@@ -129,12 +130,12 @@ export class Time extends Component<{ children: () => ReactNode }>
 	
 	
 	start = () => {
-		this.loop.stop()
+		this.props.loop.stop()
 		this.setState( { running: false } )
 	}
 	
 	stop = () => {
-		this.loop.start()
+		this.props.loop.start()
 		this.setState( { running: true } )
 	}
 	
@@ -151,7 +152,7 @@ export class Time extends Component<{ children: () => ReactNode }>
 				{children()}
 				
 				<div style={{ padding: 10 }}>
-					{this.loop.running ?
+					{this.props.loop.running ?
 					 <button onClick={this.start}>Stop</button> :
 					 <button onClick={this.stop}>Start</button>
 					}
