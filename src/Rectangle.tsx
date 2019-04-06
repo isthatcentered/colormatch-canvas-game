@@ -10,6 +10,71 @@ interface size
 	height: number
 }
 
+export class Collision
+{
+	private __collider: Rectangle
+	private __collidee: Rectangle
+	
+	
+	private constructor( collider: Rectangle, collidee: Rectangle )
+	{
+		this.__collider = collider
+		this.__collidee = collidee
+	}
+	
+	
+	// push the calling rectangle out of the callee rectangle on the
+	// axis that has the most overlap
+	resolve(): boolean
+	{
+		if ( !this.overlapping() )
+			return false
+		
+		
+		var vector_x, vector_y;
+		
+		// get the distance between center points
+		vector_x = this.__collider.centerX - this.__collidee.centerX; // - before center, + after
+		vector_y = this.__collider.centerY - this.__collidee.centerY; // - on top, positive on bottom
+		
+		const isVectorYLongerThanVectorX = vector_y * vector_y > vector_x * vector_x
+		if ( isVectorYLongerThanVectorX ) {// square to remove negatives
+			
+			let isYVectorPassedCenter = vector_y > 0
+			if ( isYVectorPassedCenter )
+				this.__collider.y = this.__collidee.bottom
+			else
+				this.__collider.y = this.__collidee.y - this.__collider.height;
+		} else { // the x vector is longer than the y vector
+			
+			// is the x vector pointing right?
+			let isVectorXPassedCenter = vector_x > 0
+			if ( isVectorXPassedCenter )
+				this.__collider.x = this.__collidee.right;
+			else  // the x vector is pointing left
+				
+				this.__collider.x = this.__collidee.x - this.__collider.width;
+		}
+		
+		return true
+	}
+	
+	
+	private overlapping(): boolean
+	{
+		const isInsideXArea = this.__collider.right >= this.__collidee.left && this.__collider.left <= this.__collidee.right,
+		      isInsideYArea = this.__collider.bottom >= this.__collidee.top && this.__collider.top <= this.__collidee.bottom
+		
+		return isInsideXArea && isInsideYArea
+	}
+	
+	
+	static for( collider: Rectangle, collidee: Rectangle )
+	{
+		return new Collision( collider, collidee )
+	}
+}
+
 export class Rectangle implements position, size
 {
 	height: number
@@ -65,44 +130,14 @@ export class Rectangle implements position, size
 	}
 	
 	
-	testCollision( object: Rectangle )
+	testCollision( object: Rectangle ): Collision | false
 	{
 		const isInsideXArea = object.right >= this.left && object.left <= this.right,
 		      isInsideYArea = object.bottom >= this.top && object.top <= this.bottom
 		
-		return isInsideXArea && isInsideYArea
-	}
-	
-	
-	// push the calling rectangle out of the callee rectangle on the
-	// axis that has the most overlap
-	resolveCollision( rectangle: Rectangle )
-	{
-		
-		var vector_x, vector_y;
-		
-		// get the distance between center points
-		vector_x = this.centerX - rectangle.centerX; // - before center, + after
-		vector_y = this.centerY - rectangle.centerY; // - on top, positive on bottom
-		
-		const isVectorYLongerThanVectorX = vector_y * vector_y > vector_x * vector_x
-		if ( isVectorYLongerThanVectorX ) {// square to remove negatives
-			
-			let isYVectorPassedCenter = vector_y > 0
-			if ( isYVectorPassedCenter )
-				this.y = rectangle.bottom
-			else
-				this.y = rectangle.y - this.height;
-		} else { // the x vector is longer than the y vector
-			
-			// is the x vector pointing right?
-			let isVectorXPassedCenter = vector_x > 0
-			if ( isVectorXPassedCenter )
-				this.x = rectangle.right;
-			else  // the x vector is pointing left
-				
-				this.x = rectangle.x - this.width;
-		}
+		return isInsideXArea && isInsideYArea ?
+		       Collision.for( this, object ) :
+		       false
 	}
 	
 	
@@ -114,3 +149,4 @@ export class Rectangle implements position, size
 		context.fill();
 	}
 }
+

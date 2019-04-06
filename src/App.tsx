@@ -1,7 +1,7 @@
 import React from "react"
 import "./App.css"
 import { IntervalGameLoop } from "./GameLoop"
-import { position, Rectangle } from "./Rectangle"
+import { Collision, position, Rectangle } from "./Rectangle"
 
 
 
@@ -33,9 +33,8 @@ loop.subscribe( () => {
 	white.draw( context );
 	red.draw( context );
 	
-	if ( red.testCollision( white ) ) {
-		// resolve the collision
-		red.resolveCollision( white );
+	const collision = Collision.for( red, white )
+	if ( collision.resolve() ) {
 		
 		// draw the white outlines around the two rectangles
 		context.beginPath();
