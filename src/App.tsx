@@ -34,12 +34,35 @@ loop.subscribe( () => {
 	red.draw( context );
 	
 	if ( red.testCollision( white ) ) {
+		// resolve the collision
+		red.resolveCollision( white );
+		
+		// draw the white outlines around the two rectangles
 		context.beginPath();
 		context.rect( red.x, red.y, red.width, red.height );
 		context.rect( white.x, white.y, white.width, white.height );
+		context.lineWidth = 1;
 		context.strokeStyle = "#ffffff";
 		context.stroke();
-		context.closePath()
+		
+		// draw the collision regions of the white rectangle (white X)
+		context.beginPath();
+		context.moveTo( white.centerX - white.width, white.centerY - white.height );
+		context.lineTo( white.centerX + white.width, white.centerY + white.height );
+		context.stroke();
+		
+		context.beginPath();
+		context.moveTo( white.centerX + white.width, white.centerY - white.height );
+		context.lineTo( white.centerX - white.width, white.centerY + white.height );
+		context.stroke();
+		
+		// draw the line between the center points of the rectangles
+		context.beginPath();
+		context.moveTo( pointer.x, pointer.y );
+		context.lineTo( white.centerX, white.centerY );
+		context.lineWidth = 3;
+		context.strokeStyle = "#303840";
+		context.stroke();
 	}
 } )
 

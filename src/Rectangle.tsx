@@ -29,6 +29,18 @@ export class Rectangle implements position, size
 	}
 	
 	
+	get centerX()
+	{
+		return this.x + this.width * 0.5;
+	}
+	
+	
+	get centerY()
+	{
+		return this.y + this.height * 0.5;
+	}
+	
+	
 	get bottom()
 	{
 		return this.y + this.height;
@@ -59,6 +71,38 @@ export class Rectangle implements position, size
 		      isInsideYArea = object.bottom >= this.top && object.top <= this.bottom
 		
 		return isInsideXArea && isInsideYArea
+	}
+	
+	
+	// push the calling rectangle out of the callee rectangle on the
+	// axis that has the most overlap
+	resolveCollision( rectangle: Rectangle )
+	{
+		
+		var vector_x, vector_y;
+		
+		// get the distance between center points
+		vector_x = this.centerX - rectangle.centerX; // - before center, + after
+		vector_y = this.centerY - rectangle.centerY; // - on top, positive on bottom
+		
+		const isVectorYLongerThanVectorX = vector_y * vector_y > vector_x * vector_x
+		if ( isVectorYLongerThanVectorX ) {// square to remove negatives
+			
+			let isYVectorPassedCenter = vector_y > 0
+			if ( isYVectorPassedCenter )
+				this.y = rectangle.bottom
+			else
+				this.y = rectangle.y - this.height;
+		} else { // the x vector is longer than the y vector
+			
+			// is the x vector pointing right?
+			let isVectorXPassedCenter = vector_x > 0
+			if ( isVectorXPassedCenter )
+				this.x = rectangle.right;
+			else  // the x vector is pointing left
+				
+				this.x = rectangle.x - this.width;
+		}
 	}
 	
 	
