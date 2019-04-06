@@ -11,15 +11,25 @@ class GameLoop
 	
 	private _id: number = 0
 	private _subscribers: listener[] = []
+	private _running: boolean = false
 	
 	start = () => {
-		this._loop()
+		this._loop( 0 )
+		this._running = true
 	}
 	
 	
 	stop = () => {
 		window.cancelAnimationFrame( this._id )
+		this._running = false
 	}
+	
+	
+	get running(): boolean
+	{
+		return this._running
+	}
+	
 	
 	subscribe = ( listener: listener ): unsubscribeFn => {
 		
@@ -31,21 +41,21 @@ class GameLoop
 	}
 	
 	
-	private _loop = () => {
+	private _loop = ( tframe: DOMHighResTimeStamp ) => {
 		this._subscribers.forEach( subscriber => subscriber() )
 		
 		this._id = window.requestAnimationFrame( this._loop )
 	}
 }
 
-export class Time extends Component<{ children: ()=> ReactNode }>
+export class Time extends Component<{ children: () => ReactNode }>
 {
 	loop: GameLoop = new GameLoop()
 	
 	
 	componentDidMount(): void
 	{
-		this.loop.start()
+		this.stop()
 		
 		this.loop.subscribe( () => {
 			this.forceUpdate()
@@ -55,22 +65,24 @@ export class Time extends Component<{ children: ()=> ReactNode }>
 	
 	componentWillUnmount(): void
 	{
-		this.loop.stop()
+		this.start()
 	}
 	
 	
-	handleStop = () => {
+	start = () => {
 		this.loop.stop()
+		this.setState( { running: false } )
 	}
 	
-	handleStart = () => {
+	stop = () => {
 		this.loop.start()
+		this.setState( { running: true } )
 	}
 	
 	
 	render()
 	{
-		let { children } = this.props
+		const { children } = this.props
 		
 		return (
 			<>
@@ -78,8 +90,10 @@ export class Time extends Component<{ children: ()=> ReactNode }>
 				{children()}
 				
 				<div style={{ padding: 10 }}>
-					<button onClick={this.handleStart}>(re) Start</button>
-					<button onClick={this.handleStop}>Stop</button>
+					{this.loop.running ?
+					 <button onClick={this.start}>Stop</button> :
+					 <button onClick={this.stop}>Start</button>
+					}
 				</div>
 			</>)
 	}
