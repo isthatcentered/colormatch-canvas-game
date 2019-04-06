@@ -7,16 +7,17 @@ export class GameLoop extends Component<{ children: ( frame: number ) => ReactNo
 {
 	frame = 0
 	
+	loop = ( time: number ) => {
+		this.forceUpdate()
+		
+		this.frame = window.requestAnimationFrame( this.loop )
+	}
+	
 	
 	componentDidMount(): void
 	{
-		const loop = ( time: number ) => {
-			this.forceUpdate()
-			
-			this.frame = window.requestAnimationFrame( loop )
-		}
 		
-		loop( this.frame )
+		this.loop( this.frame )
 	}
 	
 	
@@ -30,6 +31,10 @@ export class GameLoop extends Component<{ children: ( frame: number ) => ReactNo
 		window.cancelAnimationFrame( this.frame )
 	}
 	
+	handleStart = () => {
+		window.requestAnimationFrame( this.loop )
+	}
+	
 	
 	render()
 	{
@@ -41,6 +46,7 @@ export class GameLoop extends Component<{ children: ( frame: number ) => ReactNo
 			<>
 				{children( this.frame )}
 				
+				<button onClick={this.handleStart}>(re) Start</button>
 				<button onClick={this.handleStop}>Stop</button>
 			</>)
 	}
