@@ -22,7 +22,7 @@ export class Hue
 	
 	shift(): Hue
 	{
-		const _value = this.value >= 350 ?
+		const _value = this.value >= 360 ?
 		               0 :
 		               this.value + 1
 		

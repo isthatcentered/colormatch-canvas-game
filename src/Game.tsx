@@ -28,7 +28,7 @@ export class Game
 	}
 	
 	
-	update()
+	update( events?: any )
 	{
 		this._updateColor()
 		

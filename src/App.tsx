@@ -6,6 +6,7 @@ import { CanvasDisplay } from "./Display"
 
 
 
+
 class Controller
 {
 	handleKeyDownUp()
@@ -25,7 +26,8 @@ window.addEventListener( "keyup", controller.handleKeyDownUp )
 
 
 engine.subscribe( () => {
-	game.update()
+	const events = undefined
+	game.update(events)
 } )
 
 engine.start()
