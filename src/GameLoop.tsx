@@ -11,7 +11,7 @@ interface Subscribable
 	subscribe: ( listener: listener ) => unsubscribeFn
 }
 
-interface GameLoop extends Subscribable
+export interface GameLoop extends Subscribable
 {
 	start: () => void
 	stop: () => void
