@@ -1,8 +1,7 @@
 import React from "react"
 import { GameLoop, RAFGameLoop } from "./GameLoop"
-import { Game } from "./Game"
+import { ColorMatchGame, ColorMatchGameState, GameDisplay, GameEngine } from "./ColorMatchGame"
 import { CanvasDisplay } from "./Display"
-
 
 
 
@@ -16,10 +15,10 @@ class Controller
 }
 
 
-const controller       = new Controller(),
-      display          = new CanvasDisplay( document.getElementById( "canvas" )! as HTMLCanvasElement ),
-      game             = new Game( display ),
-      engine: GameLoop = new RAFGameLoop()
+const controller                                = new Controller(),
+      display: GameDisplay<ColorMatchGameState> = new CanvasDisplay( document.getElementById( "canvas" )! as HTMLCanvasElement ),
+      game: GameEngine                          = new ColorMatchGame( display ),
+      engine: GameLoop                          = new RAFGameLoop()
 
 window.addEventListener( "keydown", controller.handleKeyDownUp )
 window.addEventListener( "keyup", controller.handleKeyDownUp )
@@ -27,7 +26,7 @@ window.addEventListener( "keyup", controller.handleKeyDownUp )
 
 engine.subscribe( () => {
 	const events = undefined
-	game.update(events)
+	game.update( events )
 } )
 
 engine.start()
